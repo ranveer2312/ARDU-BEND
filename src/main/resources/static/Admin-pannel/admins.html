@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admins List</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Sidebar Placeholder -->
+  <div id="sidebar-placeholder"></div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Topnav Placeholder -->
+    <div id="topnav-placeholder"></div>
+
+    <!-- Page Content -->
+    <section class="content">
+      <h1>Admins List</h1>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Admin ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="adminsTableBody">
+          <!-- API data will be injected here -->
+          <!-- Example static row (remove later) -->
+          <tr>
+            <td>1</td>
+            <td>John Doe</td>
+            <td>john@example.com</td>
+            <td>Super Admin</td>
+            <td><span class="status-active">Active</span></td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>Jane Smith</td>
+            <td>jane@example.com</td>
+            <td>Moderator</td>
+            <td><span class="status-pending">Pending</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+
+  <script src="reference.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      // TODO: Replace with API call
+      // Example structure:
+      /*
+      fetch('/api/admins')
+        .then(res => res.json())
+        .then(data => {
+          const tbody = document.getElementById('adminsTableBody');
+          tbody.innerHTML = '';
+          data.forEach(admin => {
+            tbody.innerHTML += `
+              <tr>
+                <td>${admin.id}</td>
+                <td>${admin.name}</td>
+                <td>${admin.email}</td>
+                <td>${admin.role}</td>
+                <td><span class="${admin.status === 'Active' ? 'status-active' : 'status-pending'}">${admin.status}</span></td>
+              </tr>`;
+          });
+        });
+      */
+    });
+  </script>
+</body>
+</html>

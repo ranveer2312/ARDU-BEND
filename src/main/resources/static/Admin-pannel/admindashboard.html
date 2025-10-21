@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f7f9;
+            color: #333;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .container {
+            padding: 20px;
+            max-width: 900px;
+            margin: 40px auto;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background-color: #004d99;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        #login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        #login-form input, button {
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+
+        #login-form button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .error-message {
+            color: red;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        #dashboard-container {
+            display: flex;
+            gap: 20px;
+            padding: 0;
+        }
+
+        #sidebar {
+            width: 250px;
+            background-color: #f0f2f5;
+            padding: 20px;
+            border-right: 1px solid #eee;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        #sidebar nav {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .nav-button, .logout-button {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            background-color: transparent;
+            text-align: left;
+            cursor: pointer;
+            font-size: 16px;
+            color: #555;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .nav-button:hover, .logout-button:hover {
+            background-color: #e0e6ec;
+        }
+
+        .nav-button.active {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .main-content {
+            flex-grow: 1;
+            padding: 20px;
+        }
+
+        .card {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        .card h3 {
+            margin-top: 0;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 10px;
+        }
+
+        .user-list, .admin-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .user-item, .admin-item {
+            padding: 15px;
+            border: 1px solid #e1e4e8;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-details, .admin-details {
+            flex-grow: 1;
+        }
+
+        .user-actions, .admin-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .user-actions button, .admin-actions button {
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .approve-btn {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .reject-btn {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .delete-btn {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .edit-btn {
+            background-color: #ffc107;
+            color: #333;
+        }
+
+        .add-btn {
+            background-color: #007bff;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .user-pending {
+            background-color: #ffeedd;
+        }
+
+        .user-approved {
+            background-color: #e6f9e6;
+        }
+
+        .user-rejected {
+            background-color: #fce6e6;
+        }
+
+        .admin-item {
+            border-left: 5px solid #007bff;
+        }
+
+        .admin-item.main-admin {
+            border-left: 5px solid #28a745;
+        }
+
+        .main-admin-text {
+            font-weight: bold;
+            color: #28a745;
+        }
+
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-content form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .modal-content input {
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <header id="header" class="header">
+        <h1>Admin Dashboard</h1>
+    </header>
+
+    <div id="login-container" class="container">
+        <h2>Admin Login</h2>
+        <form id="login-form">
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <button type="submit">Login</button>
+        </form>
+        <p id="login-message" class="error-message"></p>
+    </div>
+
+    <div id="dashboard-container" class="hidden container">
+        <aside id="sidebar" class="sidebar">
+            <nav>
+                <button id="nav-users" class="nav-button active">User Management</button>
+                <button id="nav-admins" class="nav-button">Admin Management</button>
+            </nav>
+            <button id="logout-button" class="logout-button">Logout</button>
+        </aside>
+
+        <main id="main-content" class="main-content">
+            </main>
+    </div>
+
+    <script>
+        // --- DOM Elements ---
+        const loginContainer = document.getElementById('login-container');
+        const dashboardContainer = document.getElementById('dashboard-container');
+        const loginForm = document.getElementById('login-form');
+        const loginMessage = document.getElementById('login-message');
+        const mainContent = document.getElementById('main-content');
+        const navUsersBtn = document.getElementById('nav-users');
+        const navAdminsBtn = document.getElementById('nav-admins');
+        const logoutBtn = document.getElementById('logout-button');
+
+        // --- Global State ---
+        let authToken = null;
+        let currentAdmin = null;
+
+        // --- API Endpoints ---
+        const API_BASE_URL = 'http://localhost:8080/api'; // Replace with your backend URL
+
+        // --- Utility Functions ---
+        function getAuthHeaders() {
+            return {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+            };
+        }
+
+        function showView(viewId) {
+            const views = ['users-view', 'admins-view', 'edit-user-view', 'add-admin-view'];
+            views.forEach(view => {
+                const element = document.getElementById(view);
+                if (element) {
+                    element.classList.add('hidden');
+                }
+            });
+            const selectedView = document.getElementById(viewId);
+            if (selectedView) {
+                selectedView.classList.remove('hidden');
+            }
+        }
+
+        function renderLogin() {
+            loginContainer.classList.remove('hidden');
+            dashboardContainer.classList.add('hidden');
+            navAdminsBtn.classList.add('hidden'); // Hide admin tab until main admin is logged in
+            navUsersBtn.classList.remove('active');
+            navAdminsBtn.classList.remove('active');
+            authToken = null;
+            currentAdmin = null;
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('currentAdmin');
+        }
+
+        function renderDashboard() {
+            loginContainer.classList.add('hidden');
+            dashboardContainer.classList.remove('hidden');
+            if (currentAdmin.mainAdmin) {
+                navAdminsBtn.classList.remove('hidden');
+            }
+            navUsersBtn.click(); // Default to showing the users list
+        }
+
+        function handleAuthResponse(response) {
+            if (response.ok) {
+                return response.json();
+            }
+            return response.text().then(text => { throw new Error(text || 'Login failed.'); });
+        }
+
+        // --- Main Logic ---
+
+        // Handles the login form submission
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/admin/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await handleAuthResponse(response);
+
+                authToken = data.jwtResponse.token;
+                currentAdmin = {
+                    id: data.id,
+                    name: data.name,
+                    email: data.email,
+                    role: data.role,
+                    mainAdmin: data.mainAdmin
+                };
+
+                // Store auth token and user info in localStorage
+                localStorage.setItem('authToken', authToken);
+                localStorage.setItem('currentAdmin', JSON.stringify(currentAdmin));
+
+                loginMessage.textContent = '';
+                renderDashboard();
+            } catch (error) {
+                loginMessage.textContent = `Error: ${error.message}`;
+                console.error('Login failed:', error);
+            }
+        });
+
+        // Handles logout
+        logoutBtn.addEventListener('click', () => {
+            renderLogin();
+        });
+
+        // Loads initial state from localStorage
+        window.addEventListener('load', () => {
+            const storedToken = localStorage.getItem('authToken');
+            const storedAdmin = localStorage.getItem('currentAdmin');
+            if (storedToken && storedAdmin) {
+                authToken = storedToken;
+                currentAdmin = JSON.parse(storedAdmin);
+                renderDashboard();
+            }
+        });
+
+        // --- Dashboard Views & API Interactions ---
+
+        // User Management View
+        async function renderUserManagement() {
+            navUsersBtn.classList.add('active');
+            navAdminsBtn.classList.remove('active');
+            mainContent.innerHTML = '<h2>User Management</h2><div id="user-list">Loading users...</div>';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/users`, { headers: getAuthHeaders() });
+                const users = await response.json();
+
+                const userListDiv = document.getElementById('user-list');
+                userListDiv.innerHTML = '';
+                
+                users.sort((a, b) => a.approvalStatus.localeCompare(b.approvalStatus));
+
+                users.forEach(user => {
+                    const userCard = document.createElement('div');
+                    userCard.className = `user-item user-${user.approvalStatus.toLowerCase()}`;
+                    userCard.innerHTML = `
+                        <div class="user-details">
+                            <p><strong>Name:</strong> ${user.name}</p>
+                            <p><strong>Email:</strong> ${user.email}</p>
+                            <p><strong>Status:</strong> ${user.approvalStatus}</p>
+                        </div>
+                        <div class="user-actions">
+                            ${user.approvalStatus === 'PENDING' ? `
+                                <button class="approve-btn" data-id="${user.id}">Approve</button>
+                                <button class="reject-btn" data-id="${user.id}">Reject</button>
+                            ` : ''}
+                            <button class="view-btn" data-id="${user.id}">View Details</button>
+                            <button class="delete-btn" data-id="${user.id}">Delete</button>
+                        </div>
+                    `;
+                    userListDiv.appendChild(userCard);
+                });
+
+                // Add event listeners for buttons
+                userListDiv.querySelectorAll('.approve-btn').forEach(button => {
+                    button.addEventListener('click', () => approveUser(button.dataset.id));
+                });
+                userListDiv.querySelectorAll('.reject-btn').forEach(button => {
+                    button.addEventListener('click', () => rejectUser(button.dataset.id));
+                });
+                userListDiv.querySelectorAll('.delete-btn').forEach(button => {
+                    button.addEventListener('click', () => deleteUser(button.dataset.id));
+                });
+                userListDiv.querySelectorAll('.view-btn').forEach(button => {
+                    button.addEventListener('click', () => viewUserDetails(button.dataset.id));
+                });
+
+            } catch (error) {
+                mainContent.innerHTML = `<p class="error-message">Failed to load users: ${error.message}</p>`;
+            }
+        }
+
+        // Admin Management View
+        async function renderAdminManagement() {
+            navAdminsBtn.classList.add('active');
+            navUsersBtn.classList.remove('active');
+            mainContent.innerHTML = `
+                <h2>Admin Management</h2>
+                ${currentAdmin.mainAdmin ? '<button id="add-admin-btn" class="add-btn">Add New Admin</button>' : ''}
+                <div id="admin-list">Loading admins...</div>
+            `;
+
+            if (currentAdmin.mainAdmin) {
+                document.getElementById('add-admin-btn').addEventListener('click', renderCreateAdminForm);
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin`, { headers: getAuthHeaders() });
+                const admins = await response.json();
+
+                const adminListDiv = document.getElementById('admin-list');
+                adminListDiv.innerHTML = '';
+                
+                admins.forEach(admin => {
+                    const adminCard = document.createElement('div');
+                    adminCard.className = `admin-item ${admin.mainAdmin ? 'main-admin' : ''}`;
+                    adminCard.innerHTML = `
+                        <div class="admin-details">
+                            <p><strong>Name:</strong> ${admin.name}</p>
+                            <p><strong>Email:</strong> ${admin.email}</p>
+                            <p>${admin.mainAdmin ? '<span class="main-admin-text">MAIN ADMIN</span>' : 'ADMIN'}</p>
+                        </div>
+                        <div class="admin-actions">
+                            ${currentAdmin.mainAdmin && !admin.mainAdmin ? `
+                                <button class="transfer-btn" data-id="${admin.id}">Make Main Admin</button>
+                                <button class="delete-btn" data-id="${admin.id}">Delete</button>
+                            ` : ''}
+                            ${admin.id === currentAdmin.id || currentAdmin.mainAdmin ? `
+                                <button class="edit-btn" data-id="${admin.id}">Edit</button>
+                            ` : ''}
+                        </div>
+                    `;
+                    adminListDiv.appendChild(adminCard);
+                });
+
+                adminListDiv.querySelectorAll('.transfer-btn').forEach(button => {
+                    button.addEventListener('click', () => transferMainAdmin(button.dataset.id));
+                });
+
+                adminListDiv.querySelectorAll('.delete-btn').forEach(button => {
+                    button.addEventListener('click', () => deleteAdmin(button.dataset.id));
+                });
+
+                adminListDiv.querySelectorAll('.edit-btn').forEach(button => {
+                    button.addEventListener('click', () => editAdminProfile(button.dataset.id));
+                });
+
+            } catch (error) {
+                mainContent.innerHTML = `<p class="error-message">Failed to load admins: ${error.message}</p>`;
+            }
+        }
+
+        // View and Edit User Details
+        async function viewUserDetails(id) {
+            mainContent.innerHTML = '<h2>User Details</h2><div id="user-details-card">Loading user...</div>';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/users/${id}`, { headers: getAuthHeaders() });
+                if (!response.ok) {
+                    throw new Error('Failed to fetch user details.');
+                }
+                const user = await response.json();
+                
+                const detailsCard = document.getElementById('user-details-card');
+                detailsCard.innerHTML = `
+                    <div class="card">
+                        <h3>${user.name}</h3>
+                        <p><strong>Email:</strong> ${user.email}</p>
+                        <p><strong>Mobile:</strong> ${user.mobileNumber}</p>
+                        <p><strong>Status:</strong> ${user.approvalStatus}</p>
+                        <p><strong>Role:</strong> ${user.role}</p>
+                        <p><strong>Joining Date:</strong> ${user.dateOfJoiningOrRenewal || 'N/A'}</p>
+                        <p><strong>Expiry Date:</strong> ${user.expiryDate || 'N/A'}</p>
+                        <p><strong>Active:</strong> ${user.active ? 'Yes' : 'No'}</p>
+                        <p><strong>Father's Name:</strong> ${user.fatherName || 'N/A'}</p>
+                        <p><strong>Date of Birth:</strong> ${user.dateOfBirth || 'N/A'}</p>
+                        <p><strong>DL Number:</strong> ${user.dlNumber || 'N/A'}</p>
+                        <p><strong>Badge Number:</strong> ${user.badgeNumber || 'N/A'}</p>
+                        <p><strong>Address:</strong> ${user.address || 'N/A'}</p>
+                        <p><strong>Blood Group:</strong> ${user.bloodGroup || 'N/A'}</p>
+                        ${user.imageUrl ? `<img src="${user.imageUrl}" alt="User Image" style="width: 150px; height: 150px; object-fit: cover; margin-top: 15px; border-radius: 8px;">` : ''}
+                    </div>
+                    <button onclick="renderUserManagement()">Back to List</button>
+                    <button class="edit-btn" onclick="editUserForm(${id})">Edit User</button>
+                `;
+            } catch (error) {
+                mainContent.innerHTML = `<p class="error-message">${error.message}</p>`;
+            }
+        }
+
+        // Edit User Form
+        async function editUserForm(id) {
+            mainContent.innerHTML = '<h2>Edit User</h2><div id="edit-user-form-card">Loading user data...</div>';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/users/${id}`, { headers: getAuthHeaders() });
+                const user = await response.json();
+                
+                const formHtml = `
+                    <div class="card">
+                        <form id="edit-user-form">
+                            <input type="hidden" id="edit-user-id" value="${user.id}">
+                            <p><strong>Email:</strong> ${user.email}</p>
+                            <p><strong>Mobile:</strong> ${user.mobileNumber}</p>
+                            <input type="text" id="edit-name" placeholder="Name" value="${user.name || ''}" required>
+                            <input type="password" id="edit-password" placeholder="New Password (optional)">
+                            <input type="text" id="edit-dl-number" placeholder="DL Number" value="${user.dlNumber || ''}">
+                            <input type="text" id="edit-father-name" placeholder="Father's Name" value="${user.fatherName || ''}">
+                            <input type="date" id="edit-dob" value="${user.dateOfBirth || ''}">
+                            <input type="text" id="edit-badge-number" placeholder="Badge Number" value="${user.badgeNumber || ''}">
+                            <input type="text" id="edit-address" placeholder="Address" value="${user.address || ''}">
+                            <input type="text" id="edit-blood-group" placeholder="Blood Group" value="${user.bloodGroup || ''}">
+                            <input type="text" id="edit-whatsapp-number" placeholder="Whatsapp Number" value="${user.whatsappNumber || ''}">
+                            <button type="submit">Update User</button>
+                        </form>
+                    </div>
+                    <button onclick="viewUserDetails(${id})">Cancel</button>
+                    <p id="edit-user-message"></p>
+                `;
+                document.getElementById('edit-user-form-card').innerHTML = formHtml;
+                
+                document.getElementById('edit-user-form').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const payload = {
+                        name: document.getElementById('edit-name').value,
+                        password: document.getElementById('edit-password').value,
+                        dlNumber: document.getElementById('edit-dl-number').value,
+                        fatherName: document.getElementById('edit-father-name').value,
+                        dateOfBirth: document.getElementById('edit-dob').value,
+                        badgeNumber: document.getElementById('edit-badge-number').value,
+                        address: document.getElementById('edit-address').value,
+                        bloodGroup: document.getElementById('edit-blood-group').value,
+                        whatsappNumber: document.getElementById('edit-whatsapp-number').value
+                    };
+
+                    // Remove empty fields from payload
+                    Object.keys(payload).forEach(key => payload[key] === '' && delete payload[key]);
+
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/users/${id}`, {
+                            method: 'PUT',
+                            headers: getAuthHeaders(),
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (!response.ok) {
+                            throw new Error(await response.text());
+                        }
+                        document.getElementById('edit-user-message').textContent = 'User updated successfully!';
+                        viewUserDetails(id); // Go back to details view
+                    } catch (error) {
+                        document.getElementById('edit-user-message').textContent = `Error: ${error.message}`;
+                    }
+                });
+
+            } catch (error) {
+                mainContent.innerHTML = `<p class="error-message">Failed to load user for editing: ${error.message}</p>`;
+            }
+        }
+
+        // Create Admin Form
+        function renderCreateAdminForm() {
+            mainContent.innerHTML = `
+                <h2>Create New Admin</h2>
+                <div class="card">
+                    <form id="create-admin-form">
+                        <input type="text" id="admin-name" placeholder="Name" required>
+                        <input type="email" id="admin-email" placeholder="Email" required>
+                        <input type="text" id="admin-mobile" placeholder="Mobile Number" required>
+                        <input type="password" id="admin-password" placeholder="Password" required>
+                        <button type="submit">Create Admin</button>
+                    </form>
+                </div>
+                <button onclick="renderAdminManagement()">Back to Admins</button>
+                <p id="create-admin-message"></p>
+            `;
+
+            document.getElementById('create-admin-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const payload = {
+                    name: document.getElementById('admin-name').value,
+                    email: document.getElementById('admin-email').value,
+                    mobileNumber: document.getElementById('admin-mobile').value,
+                    password: document.getElementById('admin-password').value,
+                };
+                try {
+                    const response = await fetch(`${API_BASE_URL}/admin/create`, {
+                        method: 'POST',
+                        headers: getAuthHeaders(),
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(await response.text());
+                    }
+                    document.getElementById('create-admin-message').textContent = 'Admin created successfully!';
+                    renderAdminManagement();
+                } catch (error) {
+                    document.getElementById('create-admin-message').textContent = `Error: ${error.message}`;
+                }
+            });
+        }
+
+        // --- API Calls (CRUD Operations) ---
+
+        async function approveUser(id) {
+            if (!confirm('Are you sure you want to approve this user?')) return;
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin/users/${id}/approve`, {
+                    method: 'POST',
+                    headers: getAuthHeaders()
+                });
+                if (!response.ok) throw new Error(await response.text());
+                alert('User approved!');
+                renderUserManagement();
+            } catch (error) {
+                alert(`Failed to approve user: ${error.message}`);
+            }
+        }
+
+        async function rejectUser(id) {
+            const reason = prompt("Enter a reason for rejection (optional):");
+            if (reason === null) return;
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin/users/${id}/reject`, {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify(reason || '')
+                });
+                if (!response.ok) throw new Error(await response.text());
+                alert('User rejected!');
+                renderUserManagement();
+            } catch (error) {
+                alert(`Failed to reject user: ${error.message}`);
+            }
+        }
+
+        async function deleteUser(id) {
+            if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) return;
+            try {
+                const response = await fetch(`${API_BASE_URL}/users/${id}`, {
+                    method: 'DELETE',
+                    headers: getAuthHeaders()
+                });
+                if (!response.ok) throw new Error(await response.text());
+                alert('User deleted!');
+                renderUserManagement();
+            } catch (error) {
+                alert(`Failed to delete user: ${error.message}`);
+            }
+        }
+
+        async function transferMainAdmin(id) {
+            if (!confirm('Are you sure you want to transfer MAIN_ADMIN role to this admin?')) return;
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin/main-admin/${id}`, {
+                    method: 'PUT',
+                    headers: getAuthHeaders()
+                });
+                if (!response.ok) throw new Error(await response.text());
+                alert('MAIN_ADMIN role transferred successfully! Please log in again.');
+                renderLogin(); // Force re-login to update permissions
+            } catch (error) {
+                alert(`Failed to transfer role: ${error.message}`);
+            }
+        }
+
+        async function deleteAdmin(id) {
+            if (!confirm('Are you sure you want to delete this admin? This action cannot be undone.')) return;
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin/delete/${id}`, {
+                    method: 'DELETE',
+                    headers: getAuthHeaders()
+                });
+                if (!response.ok) throw new Error(await response.text());
+                alert('Admin account deleted!');
+                if (id === currentAdmin.id) {
+                    alert('Your account was deleted. You have been logged out.');
+                    renderLogin();
+                } else {
+                    renderAdminManagement();
+                }
+            } catch (error) {
+                alert(`Failed to delete admin: ${error.message}`);
+            }
+        }
+
+        async function editAdminProfile(id) {
+            mainContent.innerHTML = '<h2>Edit Admin Profile</h2><div id="edit-admin-form-card">Loading admin data...</div>';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin/${id}`, { headers: getAuthHeaders() });
+                const admin = await response.json();
+
+                const formHtml = `
+                    <div class="card">
+                        <form id="edit-admin-form">
+                            <input type="hidden" id="edit-admin-id" value="${admin.id}">
+                            <p><strong>Email:</strong> ${admin.email}</p>
+                            <input type="text" id="edit-name" placeholder="Name" value="${admin.name || ''}" required>
+                            <input type="text" id="edit-mobile" placeholder="Mobile Number" value="${admin.mobileNumber || ''}">
+                            <input type="text" id="edit-whatsapp" placeholder="Whatsapp Number" value="${admin.whatsappNumber || ''}">
+                            <input type="text" id="edit-dl" placeholder="DL Number" value="${admin.dlNumber || ''}">
+                            <input type="text" id="edit-father" placeholder="Father's Name" value="${admin.fatherName || ''}">
+                            <input type="date" id="edit-dob" value="${admin.dateOfBirth || ''}">
+                            <input type="text" id="edit-badge" placeholder="Badge Number" value="${admin.badgeNumber || ''}">
+                            <input type="text" id="edit-address" placeholder="Address" value="${admin.address || ''}">
+                            <input type="text" id="edit-blood" placeholder="Blood Group" value="${admin.bloodGroup || ''}">
+                            <input type="password" id="edit-password" placeholder="New Password (optional)">
+                            <button type="submit">Update Profile</button>
+                        </form>
+                    </div>
+                    <button onclick="renderAdminManagement()">Back to Admins</button>
+                    <p id="edit-admin-message"></p>
+                `;
+                document.getElementById('edit-admin-form-card').innerHTML = formHtml;
+                
+                document.getElementById('edit-admin-form').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const payload = {
+                        name: document.getElementById('edit-name').value,
+                        mobileNumber: document.getElementById('edit-mobile').value,
+                        whatsappNumber: document.getElementById('edit-whatsapp').value,
+                        dlNumber: document.getElementById('edit-dl').value,
+                        fatherName: document.getElementById('edit-father').value,
+                        dateOfBirth: document.getElementById('edit-dob').value,
+                        badgeNumber: document.getElementById('edit-badge').value,
+                        address: document.getElementById('edit-address').value,
+                        bloodGroup: document.getElementById('edit-blood').value,
+                        password: document.getElementById('edit-password').value
+                    };
+                    Object.keys(payload).forEach(key => payload[key] === '' && delete payload[key]);
+
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/admin/${id}`, {
+                            method: 'PUT',
+                            headers: getAuthHeaders(),
+                            body: JSON.stringify(payload)
+                        });
+                        if (!response.ok) throw new Error(await response.text());
+                        document.getElementById('edit-admin-message').textContent = 'Admin updated successfully!';
+                        
+                        // If the current user edited their own profile, update local state
+                        if (id == currentAdmin.id) {
+                            const updatedAdmin = await response.json();
+                            currentAdmin = { ...currentAdmin, ...updatedAdmin, mainAdmin: currentAdmin.mainAdmin };
+                            localStorage.setItem('currentAdmin', JSON.stringify(currentAdmin));
+                        }
+                        renderAdminManagement();
+                    } catch (error) {
+                        document.getElementById('edit-admin-message').textContent = `Error: ${error.message}`;
+                    }
+                });
+
+            } catch (error) {
+                mainContent.innerHTML = `<p class="error-message">Failed to load admin for editing: ${error.message}</p>`;
+            }
+        }
+
+        // --- Navigation Listeners ---
+        navUsersBtn.addEventListener('click', () => {
+            navUsersBtn.classList.add('active');
+            navAdminsBtn.classList.remove('active');
+            renderUserManagement();
+        });
+
+        navAdminsBtn.addEventListener('click', () => {
+            navAdminsBtn.classList.add('active');
+            navUsersBtn.classList.remove('active');
+            renderAdminManagement();
+        });
+    </script>
+</body>
+</html>

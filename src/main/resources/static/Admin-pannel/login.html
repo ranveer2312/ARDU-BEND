@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Login | Aeromatx</title>
+  <link href="/admin_pannel/css/style.css" rel="stylesheet" />
+  <style>
+    /* ... (CSS from your original code remains the same) ... */
+    .admin-login-container {
+        max-width: 500px;
+        margin: 100px auto;
+        padding: 40px;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+    .admin-login-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    .admin-login-header h1 {
+        color: #1989AC;
+        font-size: 28px;
+    }
+    .admin-login-form .input-group {
+        margin-bottom: 20px;
+        display: flex;
+        flex-direction: column;
+    }
+    .admin-login-form input {
+        padding: 10px;
+        font-size: 16px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+    }
+    .admin-login-btn {
+        background: #1989AC;
+        color: white;
+        width: 100%;
+        padding: 12px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+    .admin-login-btn:hover {
+        background: #116a8a;
+    }
+    .alert {
+        padding: 10px;
+        margin-bottom: 20px;
+        border-radius: 5px;
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+        display: none;
+        text-align: center;
+    }
+    .credentials-box {
+        margin-top: 20px;
+        background-color: #f4f4f4;
+        padding: 15px;
+        border-radius: 5px;
+        font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-login-container">
+    <div class="admin-login-header">
+      <h1>Admin Dashboard Login</h1>
+      <p>Access restricted to authorized personnel only</p>
+    </div>
+    <div id="adminLoginMessage" class="alert"></div>
+    <form id="adminLoginForm" class="admin-login-form" novalidate>
+      <div class="input-group">
+        <label for="adminEmail">Email</label>
+        <input type="email" id="adminEmail" placeholder="Admin Email" required />
+      </div>
+      <div class="input-group">
+        <label for="adminPassword">Password</label>
+        <input type="password" id="adminPassword" placeholder="Password" required />
+      </div>
+      <button type="submit" class="admin-login-btn">Login</button>
+      <div class="credentials-box">
+        <strong>For your reference</strong><br>
+        Email: <code>mainadmin@example.com</code><br>
+        Password: <code>LwOakGxXxPAR3IcP</code>
+      </div>
+    </form>
+  </div>
+
+
+   <script>
+    document.getElementById('adminLoginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const email = document.getElementById('adminEmail').value.trim();
+        const password = document.getElementById('adminPassword').value.trim();
+        const messageDiv = document.getElementById('adminLoginMessage');
+
+        messageDiv.style.display = 'none';
+        messageDiv.textContent = '';
+
+        try {
+            const response = await fetch('http://localhost:8080/api/auth/admin/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || 'Login failed. Please check your credentials.');
+            }
+
+            const data = await response.json();
+
+            // Clear any existing customer session data
+            localStorage.removeItem('userToken');
+            localStorage.removeItem('userUsername');
+            localStorage.removeItem('userEmail');
+            localStorage.removeItem('userId');
+            localStorage.removeItem('userRoles');
+
+            // Store the new admin data received from the successful API response
+            localStorage.setItem('adminToken', data.jwt.token);
+            localStorage.setItem('adminUsername', data.name);
+            localStorage.setItem('adminEmail', data.email);
+            localStorage.setItem('adminId', data.id);
+            localStorage.setItem('adminRoles', data.role);
+            
+            // This is the crucial part: Check the backend response for the main admin status.
+            // The value must be a string 'true' or 'false'
+            // The property name must match exactly what your API returns (e.g., 'mainAdmin', 'isMainAdmin', etc.)
+            const isMainAdmin = data.mainAdmin ? 'true' : 'false';
+            localStorage.setItem('adminMain', isMainAdmin);
+
+            localStorage.setItem('activeRole', 'ADMIN');
+            localStorage.setItem('justLoggedIn', 'true');
+
+            // Redirect to the correct dashboard file
+            window.location.href = '/Admin-pannel/dashboard.html';
+        } catch (error) {
+            messageDiv.style.display = 'block';
+            messageDiv.textContent = error.message || 'An unexpected error occurred.';
+        }
+    });
+</script>
+
+</body>
+</html>

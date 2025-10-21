@@ -1,0 +1,14 @@
+<nav class="topnav">
+  <span class="admin-name">Welcome, <span id="adminName">Admin</span></span>
+  <button id="logoutBtn" class="btn logout">Logout</button>
+</nav>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      // TODO: API Call for logout
+      alert("Logout API call here...");
+      window.location.href = "login.html";
+    });
+  });
+</script>

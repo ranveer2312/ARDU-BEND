@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Registration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div class="w-full max-w-2xl bg-white rounded-xl shadow-lg p-8 space-y-6">
+        <div class="text-center">
+            <h1 class="text-2xl font-bold text-gray-900">Admin Registration</h1>
+            <p class="mt-2 text-gray-600">Fill out this form to create a new admin account.</p>
+        </div>
+
+        <div id="registerMessage" class="hidden text-center py-3 px-4 rounded-lg font-medium"></div>
+
+        <form id="adminRegistrationForm" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
+                    <input type="text" id="username" placeholder="Username" required 
+                           class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                    <input type="email" id="email" placeholder="Email" required 
+                           class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                    <input type="password" id="password" placeholder="Password" required 
+                           class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="confirmPassword" class="block text-sm font-medium text-gray-700">Confirm Password</label>
+                    <input type="password" id="confirmPassword" placeholder="Confirm Password" required 
+                           class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="mobileNumber" class="block text-sm font-medium text-gray-700">Mobile Number</label>
+                    <input type="tel" id="mobileNumber" placeholder="Mobile Number" 
+                           class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="dlNumber" class="block text-sm font-medium text-gray-700">DL Number</label>
+                    <input type="text" id="dlNumber" placeholder="DL Number" 
+                           class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="fatherName" class="block text-sm font-medium text-gray-700">Father's Name</label>
+                    <input type="text" id="fatherName" placeholder="Father's Name" 
+                           class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="dateOfBirth" class="block text-sm font-medium text-gray-700">Date of Birth</label>
+                    <input type="date" id="dateOfBirth" 
+                           class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="badgeNumber" class="block text-sm font-medium text-gray-700">Badge Number</label>
+                    <input type="text" id="badgeNumber" placeholder="Badge Number" 
+                           class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div>
+                    <label for="bloodGroup" class="block text-sm font-medium text-gray-700">Blood Group</label>
+                    <input type="text" id="bloodGroup" placeholder="Blood Group" 
+                           class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="col-span-1 md:col-span-2">
+                    <label for="address" class="block text-sm font-medium text-gray-700">Address</label>
+                    <textarea id="address" placeholder="Address" rows="3" 
+                              class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
+                </div>
+            </div>
+            
+            <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                Register Admin
+            </button>
+        </form>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const adminRegistrationForm = document.getElementById("adminRegistrationForm");
+            const registerMessageDiv = document.getElementById("registerMessage");
+
+            const displayMessage = (div, msg, color, bgColor) => {
+                div.textContent = msg;
+                div.className = `block text-center py-3 px-4 rounded-lg font-medium text-${color}-700 bg-${bgColor}-100`;
+            };
+
+            // Admin Registration Form Submission
+            adminRegistrationForm.addEventListener("submit", async (e) => {
+                e.preventDefault();
+
+                const token = localStorage.getItem('adminToken');
+                const isMainAdmin = localStorage.getItem('adminMain') === 'true';
+
+                if (!token || !isMainAdmin) {
+                    displayMessage(registerMessageDiv, "Authentication token or Main Admin status is missing. Please log in as a Main Admin.", "red", "red");
+                    return;
+                }
+
+                const username = document.getElementById("username").value.trim();
+                const email = document.getElementById("email").value.trim();
+                const password = document.getElementById("password").value;
+                const confirmPassword = document.getElementById("confirmPassword").value;
+                const mobileNumber = document.getElementById("mobileNumber").value.trim() || null;
+                const dlNumber = document.getElementById("dlNumber").value.trim() || null;
+                const fatherName = document.getElementById("fatherName").value.trim() || null;
+                const dateOfBirth = document.getElementById("dateOfBirth").value || null;
+                const badgeNumber = document.getElementById("badgeNumber").value.trim() || null;
+                const bloodGroup = document.getElementById("bloodGroup").value.trim() || null;
+                const address = document.getElementById("address").value.trim() || null;
+
+                if (password !== confirmPassword) {
+                    displayMessage(registerMessageDiv, "Passwords do not match.", "red", "red");
+                    return;
+                }
+
+                const payload = {
+                    name: username,
+                    email: email,
+                    password: password,
+                    mobileNumber: mobileNumber,
+                    dlNumber: dlNumber,
+                    fatherName: fatherName,
+                    dateOfBirth: dateOfBirth,
+                    badgeNumber: badgeNumber,
+                    bloodGroup: bloodGroup,
+                    address: address
+                };
+
+                displayMessage(registerMessageDiv, "Registering new admin...", "blue", "blue");
+                
+                try {
+                    const res = await fetch("http://localhost:8080/api/admin/create", {
+                        method: "POST",
+                        headers: { 
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${token}` 
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const data = await res.json();
+                    if (res.ok) {
+                        displayMessage(registerMessageDiv, "Admin registered successfully!", "green", "green");
+                        // Clear the form after successful registration
+                        adminRegistrationForm.reset();
+                    } else {
+                        displayMessage(registerMessageDiv, data.message || "Failed to register admin. Check the server logs.", "red", "red");
+                    }
+                } catch (err) {
+                    console.error(err);
+                    displayMessage(registerMessageDiv, "Error connecting to server. Please check your server connection.", "red", "red");
+                }
+            });
+        });
+    </script>
+</body>
+</html>
