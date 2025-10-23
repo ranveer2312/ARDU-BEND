@@ -40,7 +40,8 @@ public class PostController {
     @GetMapping
     @PreAuthorize("hasAnyRole('USER','ADMIN','MAIN_ADMIN')")
     public ResponseEntity<List<Post>> getAllPosts() {
-        return ResponseEntity.ok(postService.getAllVisiblePosts());
+        List<Post> posts = postService.getAllVisiblePosts();
+        return ResponseEntity.ok(posts != null ? posts : List.of());
     }
 
     @DeleteMapping("/{postId}")

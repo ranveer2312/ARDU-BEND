@@ -1,5 +1,6 @@
 package com.example.ARDU.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -23,11 +24,14 @@ public class Post {
     private LocalDateTime expiresAt; // Used for archiving logic
 
     @ManyToOne
+    @JsonIgnoreProperties({"posts", "passwordHash", "mobileNumber", "whatsappNumber", "emailVerified", "mobileVerified"})
     private User user;
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties("post")
     private List<Comment> comments;
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties("post")
     private List<Reaction> reactions;
 }

@@ -1,5 +1,6 @@
 package com.example.ARDU.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.Instant;
@@ -27,15 +28,21 @@ public class User {
     private String email;
 
     @Column(nullable = false)
+    @JsonIgnore
     private String passwordHash;
 
     @Column(nullable = false, unique = true)
+    @JsonIgnore
     private String mobileNumber;
 
+    @JsonIgnore
     private Boolean mobileVerified = false;
+    @JsonIgnore
     private Boolean emailVerified = false;
 
+    @JsonIgnore
     private String whatsappNumber;
+    @JsonIgnore
     private Boolean whatsappVerified = false;
 
     private String role; // USER, ADMIN, SUPER_ADMIN
@@ -70,6 +77,8 @@ public class User {
     private String imagePublicId;
 
     // OTP
+    @JsonIgnore
     private String otpCode;
+    @JsonIgnore
     private Instant otpExpiry;
 }
