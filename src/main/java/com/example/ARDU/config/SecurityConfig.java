@@ -40,7 +40,8 @@ public class SecurityConfig {
                                 "/api/auth/**",
                                 "/api/otp/**",
                                 "/actuator/**",
-                                "/api/otp/send/whatsapp")
+                                "/api/otp/send/whatsapp",
+                                "/api/posts/*/reactions/summary")
                         .permitAll()
                         .requestMatchers("/api/posts").authenticated()
                         .requestMatchers("/api/admin/**").hasAnyRole("ADMIN", "MAIN_ADMIN")

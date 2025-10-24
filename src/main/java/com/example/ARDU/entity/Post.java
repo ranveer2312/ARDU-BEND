@@ -18,6 +18,7 @@ public class Post {
     private Long id;
 
     private String contentUrl;
+    private String caption;
     private String type; // POST / STORY
     private boolean approved;
     private LocalDateTime createdAt;

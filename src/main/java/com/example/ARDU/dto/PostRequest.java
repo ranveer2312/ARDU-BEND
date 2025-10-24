@@ -8,5 +8,6 @@ import lombok.Data;
 public class PostRequest {
     private Long userId;
     private MultipartFile file;
+    private String caption;
     private boolean story;
 }
