@@ -25,4 +25,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     // ADD THIS:
     Optional<User> findByUsername(String username);
+    
+    List<User> findByApprovalStatus(String approvalStatus);
 }

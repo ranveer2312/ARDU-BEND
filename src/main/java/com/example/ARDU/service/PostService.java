@@ -24,17 +24,20 @@ public class PostService {
     private final ReactionRepository reactionRepository;
     private final CommentRepository commentRepository;
     private final CloudinaryService cloudinaryService;
+    private final AdminRepository adminRepository;
 
     public PostService(PostRepository postRepository,
             UserRepository userRepository,
             ReactionRepository reactionRepository,
             CommentRepository commentRepository,
-            CloudinaryService cloudinaryService) {
+            CloudinaryService cloudinaryService,
+            AdminRepository adminRepository) {
         this.postRepository = postRepository;
         this.userRepository = userRepository;
         this.reactionRepository = reactionRepository;
         this.commentRepository = commentRepository;
         this.cloudinaryService = cloudinaryService;
+        this.adminRepository = adminRepository;
     }
 
     // =================================================================
@@ -93,10 +96,32 @@ public class PostService {
             post.setExpiresAt(LocalDateTime.now().plusDays(7));
             post.setType("POST");
 
-            if (user.getRole().equalsIgnoreCase("ADMIN") ||
-                    user.getRole().equalsIgnoreCase("SUPER_ADMIN")) {
+            // Debug logging
+            System.out.println("User role: '" + user.getRole() + "'");
+            System.out.println("User ID: " + user.getId());
+            System.out.println("User email: " + user.getEmail());
+            
+            // Check if user is admin by role or by checking admin table
+            boolean isAdmin = false;
+            if (user.getRole() != null && 
+                (user.getRole().equalsIgnoreCase("ADMIN") ||
+                 user.getRole().equalsIgnoreCase("MAIN_ADMIN"))) {
+                isAdmin = true;
+                System.out.println("Admin detected by role");
+            } else {
+                // Check if user exists in admin table
+                var adminOpt = adminRepository.findByEmail(user.getEmail());
+                if (adminOpt.isPresent()) {
+                    isAdmin = true;
+                    System.out.println("Admin detected by admin table lookup");
+                }
+            }
+            
+            if (isAdmin) {
+                System.out.println("Admin detected - auto-approving post");
                 post.setApproved(true); // Admins bypass approval
             } else {
+                System.out.println("Regular user - post requires approval");
                 post.setApproved(false); // Regular users require approval
             }
         }
