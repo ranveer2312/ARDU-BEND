@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -172,11 +173,8 @@ public class PostService {
         // Find current user's reaction
         String userReaction = null;
         if (currentUsername != null) {
-            User currentUser = userRepository.findByUsername(currentUsername)
-                    .or(() -> userRepository.findByEmail(currentUsername))
-                    .orElse(null);
-            
-            if (currentUser != null) {
+            try {
+                User currentUser = findUserForReactionOrComment(currentUsername);
                 System.out.println("Current user found: " + currentUser.getId());
                 userReaction = reactions.stream()
                         .filter(r -> r.getUser().getId().equals(currentUser.getId()))
@@ -184,15 +182,29 @@ public class PostService {
                         .findFirst()
                         .orElse(null);
                 System.out.println("User reaction: " + userReaction);
-            } else {
+            } catch (Exception e) {
                 System.out.println("Current user not found for username: " + currentUsername);
             }
         }
+        
+        // Get recent reactors for display (limit to 3 most recent)
+        List<Map<String, Object>> recentReactors = reactions.stream()
+                .sorted((r1, r2) -> r2.getCreatedAt().compareTo(r1.getCreatedAt()))
+                .limit(3)
+                .map(r -> {
+                    Map<String, Object> reactor = new HashMap<>();
+                    reactor.put("name", r.getUser().getName());
+                    reactor.put("imageUrl", r.getUser().getImageUrl());
+                    reactor.put("type", r.getType());
+                    return reactor;
+                })
+                .collect(Collectors.toList());
         
         Map<String, Object> summary = new HashMap<>();
         summary.put("counts", reactionCounts);
         summary.put("userReaction", userReaction);
         summary.put("total", reactions.size());
+        summary.put("recentReactors", recentReactors);
         
         System.out.println("Returning summary: " + summary);
         return summary;
@@ -216,9 +228,7 @@ public class PostService {
                 .orElseThrow(() -> new RuntimeException("Post not found"));
         System.out.println("Post found: " + post.getId());
         
-        User user = userRepository.findByUsername(username)
-                .or(() -> userRepository.findByEmail(username))
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = findUserForReactionOrComment(username);
         System.out.println("User found: " + user.getId() + ", Role: " + user.getRole());
 
         // Remove any existing reaction from this user on this post
@@ -241,10 +251,15 @@ public class PostService {
     }
 
     public void addComment(Long postId, String username, String text) {
+        System.out.println("=== ADD COMMENT DEBUG ===");
+        System.out.println("PostId: " + postId + ", Username: " + username + ", Text: " + text);
+        
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        System.out.println("Post found: " + post.getId());
+        
+        User user = findUserForReactionOrComment(username);
+        System.out.println("User found: " + user.getId() + ", Role: " + user.getRole());
 
         Comment comment = new Comment();
         comment.setPost(post);
@@ -253,6 +268,7 @@ public class PostService {
         comment.setCreatedAt(LocalDateTime.now());
 
         commentRepository.save(comment);
+        System.out.println("Comment saved successfully");
     }
 
     // Paginated comments
@@ -335,5 +351,52 @@ public class PostService {
         }
         
         return postRepository.save(post);
+    }
+
+    public List<Reaction> getReactionDetails(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+        return reactionRepository.findByPost(post, PageRequest.of(0, 100)).getContent();
+    }
+
+    private User findUserForReactionOrComment(String username) {
+        // First try to find user by username or email
+        Optional<User> userOpt = userRepository.findByUsername(username)
+                .or(() -> userRepository.findByEmail(username));
+        
+        if (userOpt.isPresent()) {
+            return userOpt.get();
+        }
+        
+        // If not found, check if it's an admin and create/find corresponding user
+        Optional<Admin> adminOpt = adminRepository.findByEmail(username);
+        if (adminOpt.isPresent()) {
+            Admin admin = adminOpt.get();
+            
+            // Check if user already exists for this admin
+            Optional<User> existingUser = userRepository.findByEmail(admin.getEmail());
+            if (existingUser.isPresent()) {
+                return existingUser.get();
+            }
+            
+            // Create a user entry for the admin
+            User adminUser = new User();
+            adminUser.setName(admin.getName());
+            adminUser.setUsername(admin.getName());
+            adminUser.setEmail(admin.getEmail());
+            adminUser.setMobileNumber(admin.getMobileNumber());
+            adminUser.setPasswordHash(admin.getPasswordHash());
+            adminUser.setRole(admin.getRole());
+            adminUser.setApprovalStatus("APPROVED");
+            adminUser.setActive(true);
+            adminUser.setImageUrl(admin.getImageUrl());
+            adminUser.setImagePublicId(admin.getImagePublicId());
+            adminUser.setCreatedAt(admin.getCreatedAt());
+            adminUser.setUpdatedAt(admin.getUpdatedAt());
+            
+            return userRepository.save(adminUser);
+        }
+        
+        throw new RuntimeException("User not found: " + username);
     }
 }
