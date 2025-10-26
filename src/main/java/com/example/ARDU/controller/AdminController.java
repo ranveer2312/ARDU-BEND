@@ -18,6 +18,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.Map; // 🛑 Import for handling generic JSON body (Map)
+import java.util.Optional; // 🛑 Import for Optional
 
 /**
  * AdminController
@@ -26,7 +28,6 @@ import java.time.ZoneId;
  * - rejectUser: ADMIN or MAIN_ADMIN
  */
 @RestController
-// 🛑 FIX 1 & 2: Change path to plural 'admins' and add CORS annotation
 @RequestMapping("/api/admins")
 @CrossOrigin(origins = "http://localhost:3000")
 public class AdminController {
@@ -43,7 +44,88 @@ public class AdminController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    // 🛑 FIX 3: ADD MISSING GET ENDPOINT
+    // ---------------------------------------------
+    // 🛑 CORE FIX: ADD MISSING PUT ENDPOINT (Update Profile)
+    // ---------------------------------------------
+    /**
+     * Update admin profile by ID. Admins can only update themselves unless they are
+     * MAIN_ADMIN.
+     * Uses Map<String, Object> to handle partial/patch-like updates from the
+     * frontend.
+     */
+    @PreAuthorize("hasAnyRole('ADMIN','MAIN_ADMIN')")
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateAdmin(@PathVariable Long id,
+            @RequestBody Map<String, Object> updates, // Use Map for flexible partial updates
+            Authentication authentication) {
+
+        Optional<Admin> adminOpt = adminRepository.findById(id);
+        if (adminOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        Admin existingAdmin = adminOpt.get();
+
+        // 1. Authorization Check: Admin can only update their own profile unless they
+        // are MAIN_ADMIN.
+        String principalEmail = authentication.getName();
+        boolean isTargetAdmin = principalEmail.equalsIgnoreCase(existingAdmin.getEmail());
+        boolean isMainAdmin = authentication.getAuthorities().stream()
+                .anyMatch(ga -> ga.getAuthority().equals("ROLE_MAIN_ADMIN"));
+
+        if (!isMainAdmin && !isTargetAdmin) {
+            return ResponseEntity.status(403).body("You are not authorized to update this profile.");
+        }
+
+        // 2. Update logic: Manually map fields from the JSON body (Map) to the entity.
+        // Note: The frontend fields map to String/LocalDate types in the entity.
+
+        if (updates.containsKey("name") && updates.get("name") != null)
+            existingAdmin.setName((String) updates.get("name"));
+        if (updates.containsKey("dlNumber") && updates.get("dlNumber") != null)
+            existingAdmin.setDlNumber((String) updates.get("dlNumber"));
+        if (updates.containsKey("fatherName") && updates.get("fatherName") != null)
+            existingAdmin.setFatherName((String) updates.get("fatherName"));
+
+        // Date handling: The frontend sends the date as an ISO string (e.g.,
+        // "2000-01-01") which Spring can convert to LocalDate from a String in the map.
+        if (updates.containsKey("dateOfBirth") && updates.get("dateOfBirth") != null) {
+            try {
+                // Map value is likely a String representation of the date
+                existingAdmin.setDateOfBirth(LocalDate.parse((String) updates.get("dateOfBirth")));
+            } catch (Exception e) {
+                // Handle parsing error if necessary, or rely on Spring's default behavior
+            }
+        }
+
+        if (updates.containsKey("badgeNumber") && updates.get("badgeNumber") != null)
+            existingAdmin.setBadgeNumber((String) updates.get("badgeNumber"));
+        if (updates.containsKey("address") && updates.get("address") != null)
+            existingAdmin.setAddress((String) updates.get("address"));
+        if (updates.containsKey("bloodGroup") && updates.get("bloodGroup") != null)
+            existingAdmin.setBloodGroup((String) updates.get("bloodGroup"));
+        if (updates.containsKey("whatsappNumber") && updates.get("whatsappNumber") != null)
+            existingAdmin.setWhatsappNumber((String) updates.get("whatsappNumber"));
+
+        // Handle password change separately: Client sends raw password under the key
+        // "password".
+        if (updates.containsKey("password") && updates.get("password") != null) {
+            String rawPassword = (String) updates.get("password");
+            if (!rawPassword.isBlank()) {
+                existingAdmin.setPasswordHash(passwordEncoder.encode(rawPassword));
+            }
+        }
+
+        existingAdmin.setUpdatedAt(Instant.now());
+
+        Admin updatedAdmin = adminRepository.save(existingAdmin);
+        updatedAdmin.setPasswordHash(null); // Clear sensitive data
+        return ResponseEntity.ok(updatedAdmin);
+    }
+
+    // ---------------------------------------------
+    // EXISTING ENDPOINTS BELOW
+    // ---------------------------------------------
+
     /**
      * Get admin profile by ID. Crucial for the frontend ProfilePage.
      */

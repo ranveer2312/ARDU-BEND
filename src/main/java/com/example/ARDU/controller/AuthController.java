@@ -19,6 +19,9 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
+// 🛑 CORE FIX: Add CrossOrigin annotation to allow requests from the frontend
+// origin
+@CrossOrigin(origins = "http://localhost:3000")
 @RequiredArgsConstructor
 public class AuthController {
 
