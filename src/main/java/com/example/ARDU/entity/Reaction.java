@@ -1,5 +1,6 @@
 package com.example.ARDU.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -19,8 +20,10 @@ public class Reaction {
     private LocalDateTime createdAt;
 
     @ManyToOne
-    private User user; // changed from AppUser to User
+    @JsonIgnoreProperties({"posts", "passwordHash", "mobileNumber", "whatsappNumber", "emailVerified", "mobileVerified", "dlNumber", "fatherName", "dateOfBirth", "badgeNumber", "address", "bloodGroup", "nomineeName", "nomineeRelationship", "nomineeContactNumber", "role", "approvalStatus", "dateOfJoiningOrRenewal", "expiryDate", "active", "createdAt", "updatedAt"})
+    private User user;
 
     @ManyToOne
+    @JsonIgnoreProperties({"user", "comments", "reactions"})
     private Post post;
 }

@@ -100,12 +100,12 @@ public class PostService {
             System.out.println("User role: '" + user.getRole() + "'");
             System.out.println("User ID: " + user.getId());
             System.out.println("User email: " + user.getEmail());
-            
+
             // Check if user is admin by role or by checking admin table
             boolean isAdmin = false;
-            if (user.getRole() != null && 
-                (user.getRole().equalsIgnoreCase("ADMIN") ||
-                 user.getRole().equalsIgnoreCase("MAIN_ADMIN"))) {
+            if (user.getRole() != null &&
+                    (user.getRole().equalsIgnoreCase("ADMIN") ||
+                            user.getRole().equalsIgnoreCase("MAIN_ADMIN"))) {
                 isAdmin = true;
                 System.out.println("Admin detected by role");
             } else {
@@ -116,7 +116,7 @@ public class PostService {
                     System.out.println("Admin detected by admin table lookup");
                 }
             }
-            
+
             if (isAdmin) {
                 System.out.println("Admin detected - auto-approving post");
                 post.setApproved(true); // Admins bypass approval
@@ -156,26 +156,26 @@ public class PostService {
     public Map<String, Object> getReactionSummary(Long postId, String currentUsername) {
         System.out.println("=== GET REACTION SUMMARY DEBUG ===");
         System.out.println("PostId: " + postId + ", Username: " + currentUsername);
-        
+
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
         System.out.println("Post found: " + post.getId());
-        
+
         // Get all reactions for this post
         List<Reaction> reactions = reactionRepository.findByPost(post, PageRequest.of(0, 1000)).getContent();
         System.out.println("Found " + reactions.size() + " reactions");
-        
+
         // Count reactions by type
         Map<String, Long> reactionCounts = reactions.stream()
                 .collect(Collectors.groupingBy(Reaction::getType, Collectors.counting()));
-        
+
         // Find current user's reaction
         String userReaction = null;
         if (currentUsername != null) {
             User currentUser = userRepository.findByUsername(currentUsername)
                     .or(() -> userRepository.findByEmail(currentUsername))
                     .orElse(null);
-            
+
             if (currentUser != null) {
                 System.out.println("Current user found: " + currentUser.getId());
                 userReaction = reactions.stream()
@@ -188,12 +188,12 @@ public class PostService {
                 System.out.println("Current user not found for username: " + currentUsername);
             }
         }
-        
+
         Map<String, Object> summary = new HashMap<>();
         summary.put("counts", reactionCounts);
         summary.put("userReaction", userReaction);
         summary.put("total", reactions.size());
-        
+
         System.out.println("Returning summary: " + summary);
         return summary;
     }
@@ -211,11 +211,11 @@ public class PostService {
     public void addReaction(Long postId, String username, String type) {
         System.out.println("=== ADD REACTION DEBUG ===");
         System.out.println("PostId: " + postId + ", Username: " + username + ", Type: " + type);
-        
+
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
         System.out.println("Post found: " + post.getId());
-        
+
         User user = userRepository.findByUsername(username)
                 .or(() -> userRepository.findByEmail(username))
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -277,27 +277,27 @@ public class PostService {
         System.out.println("=== DELETE USER POST DEBUG ===");
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
-        
+
         // Get current user from security context
         String currentUsername = org.springframework.security.core.context.SecurityContextHolder
                 .getContext().getAuthentication().getName();
         System.out.println("Current username from security context: " + currentUsername);
-        
+
         // Try to find user by username first, then by email
         User currentUser = userRepository.findByUsername(currentUsername)
                 .or(() -> userRepository.findByEmail(currentUsername))
                 .orElseThrow(() -> new RuntimeException("Current user not found"));
         System.out.println("Current user ID: " + currentUser.getId() + ", Role: " + currentUser.getRole());
         System.out.println("Post owner ID: " + post.getUser().getId());
-        
+
         // Check if user owns the post or is admin
-        if (!post.getUser().getId().equals(currentUser.getId()) && 
-            !currentUser.getRole().equalsIgnoreCase("ADMIN") && 
-            !currentUser.getRole().equalsIgnoreCase("MAIN_ADMIN")) {
+        if (!post.getUser().getId().equals(currentUser.getId()) &&
+                !currentUser.getRole().equalsIgnoreCase("ADMIN") &&
+                !currentUser.getRole().equalsIgnoreCase("MAIN_ADMIN")) {
             System.out.println("Access denied: User doesn't own the post");
             throw new RuntimeException("You can only delete your own posts");
         }
-        
+
         System.out.println("Access granted: Deleting post");
         cloudinaryService.deleteFile(post.getContentUrl());
         postRepository.delete(post);
@@ -307,33 +307,33 @@ public class PostService {
         System.out.println("=== UPDATE POST DEBUG ===");
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
-        
+
         // Get current user from security context
         String currentUsername = org.springframework.security.core.context.SecurityContextHolder
                 .getContext().getAuthentication().getName();
         System.out.println("Current username from security context: " + currentUsername);
-        
+
         // Try to find user by username first, then by email
         User currentUser = userRepository.findByUsername(currentUsername)
                 .or(() -> userRepository.findByEmail(currentUsername))
                 .orElseThrow(() -> new RuntimeException("Current user not found"));
         System.out.println("Current user ID: " + currentUser.getId() + ", Role: " + currentUser.getRole());
         System.out.println("Post owner ID: " + post.getUser().getId());
-        
+
         // Check if user owns the post or is admin
-        if (!post.getUser().getId().equals(currentUser.getId()) && 
-            !currentUser.getRole().equalsIgnoreCase("ADMIN") && 
-            !currentUser.getRole().equalsIgnoreCase("MAIN_ADMIN")) {
+        if (!post.getUser().getId().equals(currentUser.getId()) &&
+                !currentUser.getRole().equalsIgnoreCase("ADMIN") &&
+                !currentUser.getRole().equalsIgnoreCase("MAIN_ADMIN")) {
             System.out.println("Access denied: User doesn't own the post");
             throw new RuntimeException("You can only edit your own posts");
         }
-        
+
         System.out.println("Access granted: Updating post with caption: " + request.getCaption());
         // Update caption if provided
         if (request.getCaption() != null) {
             post.setCaption(request.getCaption());
         }
-        
+
         return postRepository.save(post);
     }
 }

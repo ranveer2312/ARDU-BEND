@@ -248,7 +248,7 @@ public class UserController {
     // --- Helper mapping ---
     private UserResponse toResponse(User u) {
         return new UserResponse(
-                u.getId(),
+                u.getId(), 
                 u.getUsername(),
                 u.getEmail(),
                 u.getMobileNumber(),
