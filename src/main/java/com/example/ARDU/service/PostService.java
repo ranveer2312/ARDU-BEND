@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -184,16 +185,14 @@ public class PostService {
                         .findFirst()
                         .orElse(null);
                 System.out.println("User reaction: " + userReaction);
-            } else {
+            } catch (Exception e) {
                 System.out.println("Current user not found for username: " + currentUsername);
             }
         }
-
         Map<String, Object> summary = new HashMap<>();
         summary.put("counts", reactionCounts);
         summary.put("userReaction", userReaction);
         summary.put("total", reactions.size());
-
         System.out.println("Returning summary: " + summary);
         return summary;
     }
@@ -241,10 +240,15 @@ public class PostService {
     }
 
     public void addComment(Long postId, String username, String text) {
+        System.out.println("=== ADD COMMENT DEBUG ===");
+        System.out.println("PostId: " + postId + ", Username: " + username + ", Text: " + text);
+
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        System.out.println("Post found: " + post.getId());
+
+        User user = findUserForReactionOrComment(username);
+        System.out.println("User found: " + user.getId() + ", Role: " + user.getRole());
 
         Comment comment = new Comment();
         comment.setPost(post);
@@ -253,6 +257,7 @@ public class PostService {
         comment.setCreatedAt(LocalDateTime.now());
 
         commentRepository.save(comment);
+        System.out.println("Comment saved successfully");
     }
 
     // Paginated comments
@@ -335,5 +340,52 @@ public class PostService {
         }
 
         return postRepository.save(post);
+    }
+
+    public List<Reaction> getReactionDetails(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+        return reactionRepository.findByPost(post, PageRequest.of(0, 100)).getContent();
+    }
+
+    private User findUserForReactionOrComment(String username) {
+        // First try to find user by username or email
+        Optional<User> userOpt = userRepository.findByUsername(username)
+                .or(() -> userRepository.findByEmail(username));
+
+        if (userOpt.isPresent()) {
+            return userOpt.get();
+        }
+
+        // If not found, check if it's an admin and create/find corresponding user
+        Optional<Admin> adminOpt = adminRepository.findByEmail(username);
+        if (adminOpt.isPresent()) {
+            Admin admin = adminOpt.get();
+
+            // Check if user already exists for this admin
+            Optional<User> existingUser = userRepository.findByEmail(admin.getEmail());
+            if (existingUser.isPresent()) {
+                return existingUser.get();
+            }
+
+            // Create a user entry for the admin
+            User adminUser = new User();
+            adminUser.setName(admin.getName());
+            adminUser.setUsername(admin.getName());
+            adminUser.setEmail(admin.getEmail());
+            adminUser.setMobileNumber(admin.getMobileNumber());
+            adminUser.setPasswordHash(admin.getPasswordHash());
+            adminUser.setRole(admin.getRole());
+            adminUser.setApprovalStatus("APPROVED");
+            adminUser.setActive(true);
+            adminUser.setImageUrl(admin.getImageUrl());
+            adminUser.setImagePublicId(admin.getImagePublicId());
+            adminUser.setCreatedAt(admin.getCreatedAt());
+            adminUser.setUpdatedAt(admin.getUpdatedAt());
+
+            return userRepository.save(adminUser);
+        }
+
+        throw new RuntimeException("User not found: " + username);
     }
 }
