@@ -173,11 +173,8 @@ public class PostService {
         // Find current user's reaction
         String userReaction = null;
         if (currentUsername != null) {
-            User currentUser = userRepository.findByUsername(currentUsername)
-                    .or(() -> userRepository.findByEmail(currentUsername))
-                    .orElse(null);
-
-            if (currentUser != null) {
+            try {
+                User currentUser = findUserForReactionOrComment(currentUsername);
                 System.out.println("Current user found: " + currentUser.getId());
                 userReaction = reactions.stream()
                         .filter(r -> r.getUser().getId().equals(currentUser.getId()))
@@ -189,10 +186,26 @@ public class PostService {
                 System.out.println("Current user not found for username: " + currentUsername);
             }
         }
+
+        // Get recent reactors for display (limit to 3 most recent)
+        List<Map<String, Object>> recentReactors = reactions.stream()
+                .sorted((r1, r2) -> r2.getCreatedAt().compareTo(r1.getCreatedAt()))
+                .limit(3)
+                .map(r -> {
+                    Map<String, Object> reactor = new HashMap<>();
+                    reactor.put("name", r.getUser().getName());
+                    reactor.put("imageUrl", r.getUser().getImageUrl());
+                    reactor.put("type", r.getType());
+                    return reactor;
+                })
+                .collect(Collectors.toList());
+
         Map<String, Object> summary = new HashMap<>();
         summary.put("counts", reactionCounts);
         summary.put("userReaction", userReaction);
         summary.put("total", reactions.size());
+        summary.put("recentReactors", recentReactors);
+
         System.out.println("Returning summary: " + summary);
         return summary;
     }
@@ -215,9 +228,7 @@ public class PostService {
                 .orElseThrow(() -> new RuntimeException("Post not found"));
         System.out.println("Post found: " + post.getId());
 
-        User user = userRepository.findByUsername(username)
-                .or(() -> userRepository.findByEmail(username))
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = findUserForReactionOrComment(username);
         System.out.println("User found: " + user.getId() + ", Role: " + user.getRole());
 
         // Remove any existing reaction from this user on this post
