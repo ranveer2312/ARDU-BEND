@@ -153,4 +153,9 @@ public class PostController {
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
         }
     }
+
+    @GetMapping("/{postId}/reactions/details")
+    public ResponseEntity<List<Reaction>> getReactionDetails(@PathVariable Long postId) {
+        return ResponseEntity.ok(postService.getReactionDetails(postId));
+    }
 }
